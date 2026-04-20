@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -6,6 +6,10 @@ import { Input } from "../components/ui/Input";
 import { useAsyncAction } from "../hooks/useAsyncAction";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
+import {
+  formatAuthErrorMessage,
+  readAuthErrorFromHash,
+} from "../utils/authErrors";
 
 const authHighlights = [
   {
@@ -73,6 +77,26 @@ export default function AuthPage() {
     [mode],
   );
 
+  useEffect(() => {
+    const hashError = readAuthErrorFromHash();
+
+    if (!hashError) {
+      return;
+    }
+
+    pushToast({
+      title: "Authentication setup needed",
+      description: hashError,
+      tone: "error",
+    });
+
+    window.history.replaceState(
+      null,
+      document.title,
+      `${window.location.pathname}${window.location.search}`,
+    );
+  }, [pushToast]);
+
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -89,7 +113,9 @@ export default function AuthPage() {
         pushToast({
           title: "Login failed",
           description:
-            error instanceof Error ? error.message : "Please try again.",
+            error instanceof Error
+              ? formatAuthErrorMessage(error.message)
+              : "Please try again.",
           tone: "error",
         });
       }
@@ -113,7 +139,9 @@ export default function AuthPage() {
         pushToast({
           title: "Signup failed",
           description:
-            error instanceof Error ? error.message : "Please try again.",
+            error instanceof Error
+              ? formatAuthErrorMessage(error.message)
+              : "Please try again.",
           tone: "error",
         });
       }
@@ -128,7 +156,9 @@ export default function AuthPage() {
         pushToast({
           title: "Google sign-in failed",
           description:
-            error instanceof Error ? error.message : "Please try again.",
+            error instanceof Error
+              ? formatAuthErrorMessage(error.message)
+              : "Please try again.",
           tone: "error",
         });
       }
@@ -150,7 +180,9 @@ export default function AuthPage() {
         pushToast({
           title: "Demo login failed",
           description:
-            error instanceof Error ? error.message : "Please try again.",
+            error instanceof Error
+              ? formatAuthErrorMessage(error.message)
+              : "Please try again.",
           tone: "error",
         });
       }
